@@ -15,7 +15,6 @@ void Sprite::render(Image& fbuff, Area rect)
 	switch (type)
 	{
 		case PLAYER:
-			//fbuff.drawImage(*image, pos.x, pos.y, rect);
 			fbuff.drawImage(*image, 65, 50, rect);
 			break;
 		default:

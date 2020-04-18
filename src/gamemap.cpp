@@ -33,12 +33,8 @@ bool GameMap::loadMap(const char* filename)
 	for (int x = 0; x < width; x++) {
 		for (int y = 0; y < height; y++) {
 			getCell(x, y).type = (eCellType)cells[x + y * width];
-			std::cout << getCell(x, y).type << ' ';
-
 		}
-		std::cout << '\n';
 	}
-
 
 	delete[] cells; //always free any memory allocated!
 
@@ -49,32 +45,30 @@ bool GameMap::loadMap(const char* filename)
 void GameMap::drawMap(Image* framebuffer)
 {
 	int cs = tileset->width / 16; //size in pixels of a cell
-	
+	float time = Game::instance->getTime() * 0.8;	// for animating cells
 	//for every cell
 	for (int x = 0; x < width; ++x)
 		for (int y = 0; y < height; ++y)
 		{
 			//get cell info
 			sCell& cell = getCell(x, y);
-			if (cell.type == 0) //skip empty
+			int type = (int)cell.type;
+			if (type == 0) //skip empty
 				continue;
+			// Animate this cell
+			if (type == AGUA) {
+				type = AGUA + (int(time * 6)) % 5;
+			}
 			//compute tile pos in tileset image
-			int tilex = (cell.type % 16)*cs;
-			int tiley = floor(cell.type / 16)*cs;
+			int tilex = (type % 16)*cs;
+			int tiley = floor(type / 16)*cs;
 			Area area(tilex, tiley, cs, cs);
 			//avoid rendering out of screen stuff
-			
 			if (x < -cs || (x*cs - (int)camera->position.x) + cs > framebuffer->width + cs ||
 				y < -cs || (y*cs - (int)camera->position.y) + cs > framebuffer->height + cs)
 				continue;
 			//draw area of tileset inside framebuffer
 			framebuffer->drawImage(*tileset, (x*cs - (int)camera->position.x) , (y*cs - (int)camera->position.y) , area);
-			/*
-			if (x < -cs || x*cs > framebuffer->width  ||
-				y < -cs || y*cs > framebuffer->height )
-				continue;
-			//draw area of tileset inside framebuffer
-			framebuffer->drawImage(*tileset, x*cs , y*cs , area);*/
 		}
 }
 

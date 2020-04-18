@@ -41,7 +41,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	font.loadTGA("data/bitmap-font-white.tga"); //load bitmap-font image
 	minifont.loadTGA("data/mini-font-white-4x6.tga"); //load bitmap-font image
 	sprite.loadTGA("data/spritesheet.tga"); //example to load an sprite
-	tileset.loadTGA("data/elementos3.tga");
+	tileset.loadTGA("data/wall.tga");
 
 	enableAudio(); //enable this line if you plan to add audio to your application
 	//synth.playSample("data/coin.wav",1,true);
@@ -52,7 +52,7 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	// Init gamemap
 	map = new GameMap(128, 128, camera);
 	map->tileset = &tileset;
-	map->loadMap("data/elementos3.map");
+	map->loadMap("data/wall.map");
 
 	// Init stages
 	stage = new Stage(&font, &minifont, &time, &synth);
@@ -88,57 +88,8 @@ void Game::render(void)
 
 void Game::update(double seconds_elapsed)
 {
-	//Add here your update method
+	// Call stage update
 	current_stage->update(seconds_elapsed);
-	
-	/*
-	// musica
-	//const int notes[] = { 69, 71,72,74,76 };
-	//synth.osc1.setNote(notes[int(time) % 5]);
-	
-	
-	float speed = 30;
-
-	//Read the keyboard state, to see all the keycodes: https://wiki.libsdl.org/SDL_Keycode
-	if (Input::isKeyPressed(SDL_SCANCODE_UP)) //if key up
-	{
-		facing = FACE_UP;
-		player_pos.y -= speed * seconds_elapsed;
-	}
-	if (Input::isKeyPressed(SDL_SCANCODE_DOWN)) //if key down
-	{
-		facing = FACE_DOWN;
-		player_pos.y += speed * seconds_elapsed;
-	}
-	if (Input::isKeyPressed(SDL_SCANCODE_LEFT)) //if key up
-	{
-		facing = FACE_LEFT;
-		player_pos.x -= speed * seconds_elapsed;
-	}
-	if (Input::isKeyPressed(SDL_SCANCODE_RIGHT)) //if key down
-	{
-		facing = FACE_RIGHT;
-		player_pos.x += speed * seconds_elapsed;
-	}
-
-	//example of 'was pressed'
-	if (Input::wasKeyPressed(SDL_SCANCODE_A)) //if key A was pressed
-	{
-	}
-	if (Input::wasKeyPressed(SDL_SCANCODE_Z)) //if key Z was pressed
-	{
-	}
-
-	//to read the gamepad state
-	if (Input::gamepads[0].isButtonPressed(A_BUTTON)) //if the A button is pressed
-	{
-	}
-
-	if (Input::gamepads[0].direction & PAD_UP) //left stick pointing up
-	{
-		bgcolor.set(0, 255, 0);
-	}
-	*/
 }
 
 //Keyboard event handler (sync input)
@@ -178,10 +129,7 @@ void Game::onKeyDown( SDL_KeyboardEvent event )
 		case Stage::INTRO_STAGE:
 			// If we go back to the Intro stage that means that we are going to restart the game
 			current_stage = intro_stage;
-			// Free what we have on play_stage
-			free(play_stage);
-			// Create a new play_stage
-			play_stage = new PlayStage(&font, &minifont, &sprite, &time, &synth, camera, map);
+			play_stage->reset();
 			break;
 		case Stage::PLAY_STAGE:
 			current_stage = play_stage;
@@ -195,6 +143,7 @@ void Game::onKeyDown( SDL_KeyboardEvent event )
 
 void Game::onKeyUp(SDL_KeyboardEvent event)
 {
+	current_stage->onKeyUp(event);
 }
 
 void Game::onGamepadButtonDown(SDL_JoyButtonEvent event)

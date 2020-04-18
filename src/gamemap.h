@@ -4,8 +4,12 @@
 #include "framework.h"
 #include "image.h"
 #include "camera.h"
+#include "game.h"
 
-enum eCellType : uint8 { EMPTY, TIERRA, CESPED, AGUA, ARBOL, START };
+enum eCellType : uint8 { EMPTY, START, TIERRA, CESPED, AGUA, AGUA2, AGUA3, AGUA4, AGUA5, AGUACESPED, ARBOL, PUENTE,
+                         INTERIOR = 16, PARED, PUERTA, PARED2, PARED3, PARED4, PARED5, PARED6,
+						 BOMBAROJA = 32, BOMBAAZUL, BOMBAAMARILLA,
+						 ROJO = 48, AZUL, AMARILLO};
 enum eItemType : uint8 { NOTHING };
 
 struct sCell {
