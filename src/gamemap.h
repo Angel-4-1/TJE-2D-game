@@ -4,17 +4,18 @@
 #include "framework.h"
 #include "image.h"
 #include "camera.h"
-#include "game.h"
 
-enum eCellType : uint8 { EMPTY, START, TIERRA, CESPED, AGUA, AGUA2, AGUA3, AGUA4, AGUA5, AGUACESPED, ARBOL, PUENTE,
+
+enum eCellType : uint8 { EMPTY, START, TIERRA, CESPED, AGUA, AGUA2, AGUA3, AGUA4, AGUA5, AGUACESPED, ARBOL, PUENTE, PUENTE2, CACTUS,
                          INTERIOR = 16, PARED, PUERTA, PARED2, PARED3, PARED4, PARED5, PARED6,
-						 BOMBAROJA = 32, BOMBAAZUL, BOMBAAMARILLA,
 						 ROJO = 48, AZUL, AMARILLO};
-enum eItemType : uint8 { NOTHING };
+
+enum eItemType : uint8 { NOTHING, BOMBAROJA = 32, BOMBAAZUL = 36, BOMBAAMARILLA = 40};
 
 struct sCell {
 	eCellType type;
 	eItemType item;
+	bool isValid;
 };
 
 struct sMapHeader {
@@ -39,6 +40,7 @@ public:
 	bool loadMap(const char* filename);
 	void drawMap(Image* framebuffer);
 
+	// Get the starting position 
 	Vector2 getStart();
 };
 

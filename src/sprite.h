@@ -5,7 +5,6 @@
 #include "includes.h"
 #include "framework.h"
 #include "image.h"
-#include "game.h"
 #include "camera.h"
 
 class Sprite

@@ -249,3 +249,15 @@ bool Synth::updateSamplesBuffer(SDL_AudioSpec& spec)
 	}
 	return true;
 }
+
+void Synth::stopAllSamples()
+{
+	for (int j = 0; j < MAX_PLAYBACK_SAMPLES; ++j)
+	{
+		SamplePlayback& sp = samples_playback[j];
+		if (!sp.in_use)
+			continue;
+
+		sp.stop();
+	}
+}

@@ -15,6 +15,7 @@ void Sprite::render(Image& fbuff, Area rect)
 	switch (type)
 	{
 		case PLAYER:
+			// always draw the player in the middle of the framebuffer
 			fbuff.drawImage(*image, 65, 50, rect);
 			break;
 		default:

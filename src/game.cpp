@@ -9,16 +9,28 @@
 
 Game* Game::instance = NULL;
 
+// Font images
 Image font;
+Image dark_font;
 Image minifont;
-Image sprite;
+Image dark_minifont;
+
+// Sprites
+Image sprite_sherif;
+Image sprite_boy;
+
 Color bgcolor(130, 80, 100);
 Image tileset;
+Image intro;
+Image lose;
+Image win;
+Image tutorial;
+Image arrow;
 
 // Stages
 Stage* current_stage = NULL;
-Stage* stage = NULL;
 IntroStage* intro_stage = NULL;
+TutorialStage* tutorial_stage = NULL;
 PlayStage* play_stage = NULL;
 FinalStage* final_stage = NULL;
 
@@ -38,27 +50,39 @@ Game::Game(int window_width, int window_height, SDL_Window* window)
 	time = 0.0f;
 	elapsed_time = 0.0f;
 
+	// Load the fonts
 	font.loadTGA("data/bitmap-font-white.tga"); //load bitmap-font image
+	dark_font.loadTGA("data/bitmap-font-black.tga"); //load bitmap-font image
 	minifont.loadTGA("data/mini-font-white-4x6.tga"); //load bitmap-font image
-	sprite.loadTGA("data/spritesheet.tga"); //example to load an sprite
-	tileset.loadTGA("data/wall.tga");
+	dark_minifont.loadTGA("data/mini-font-black-4x6.tga"); //load bitmap-font image
+	
+	// Load the sprite of the player
+	sprite_sherif.loadTGA("data/sherifsprite.tga");
+	sprite_boy.loadTGA("data/spritesheet.tga");
+
+	// Load the tileset and some images
+	tileset.loadTGA("data/fuego.tga");
+	intro.loadTGA("data/intro.tga");
+	lose.loadTGA("data/explosion.tga");
+	win.loadTGA("data/win.tga");
+	tutorial.loadTGA("data/tuto.tga");
+	arrow.loadTGA("data/arrow.tga");
 
 	enableAudio(); //enable this line if you plan to add audio to your application
-	//synth.playSample("data/coin.wav",1,true);
-	//synth.osc1.amplitude = 0.5;
 
+	// Set the camera to a random to position, it will be changed later
 	camera = new Camera(65,50);
 
 	// Init gamemap
 	map = new GameMap(128, 128, camera);
 	map->tileset = &tileset;
-	map->loadMap("data/wall.map");
+	map->loadMap("data/mapabombas.map");
 
 	// Init stages
-	stage = new Stage(&font, &minifont, &time, &synth);
-	intro_stage = new IntroStage(&font, &minifont, &time, &synth);
-	play_stage = new PlayStage(&font, &minifont, &sprite, &time, &synth, camera, map);
-	final_stage = new FinalStage(&font, &minifont, &time, &synth);
+	intro_stage = new IntroStage(&font, &dark_font, &minifont, &time, &synth, &intro);
+	tutorial_stage = new TutorialStage(&dark_font, &dark_minifont, &time, &synth, &tutorial, &sprite_sherif, &sprite_boy, &arrow);
+	play_stage = new PlayStage(&font, &minifont, &sprite_sherif, &time, &synth, camera, map);
+	final_stage = new FinalStage(&font, &minifont, &lose, &win, &time, &synth);
 	current_stage = intro_stage;
 }
 
@@ -72,24 +96,54 @@ void Game::render(void)
 	map->drawMap(&framebuffer);
 	current_stage->render(framebuffer);
 	showFramebuffer(&framebuffer);
-
-	//some new useful functions
-		//framebuffer.fill( bgcolor );								//fills the image with one color
-		//framebuffer.drawLine( 0, 0, 100,100, Color::RED );		//draws a line
-		//framebuffer.drawImage( sprite, 0, 0 );					//draws full image
-		//framebuffer.drawImage( sprite, 0, 0, framebuffer.width, framebuffer.height );			//draws a scaled image
-		//framebuffer.drawImage( sprite, 0, 0, Area(0,0,14,18) );	//draws only a part of an image
-		//framebuffer.drawText( "Hello World", 0, 0, font );				//draws some text using a bitmap font in an image (assuming every char is 7x9)
-		//framebuffer.drawText( toString(time), 1, 10, minifont,4,6);	//draws some text using a bitmap font in an image (assuming every char is 4x6)
-
-	//send image to screen
-	//showFramebuffer(&framebuffer);
 }
 
 void Game::update(double seconds_elapsed)
 {
 	// Call stage update
 	current_stage->update(seconds_elapsed);
+
+	// Change stage
+	if (current_stage->change) {
+		changeState();
+	}
+}
+
+// Select to which state go
+void Game::changeState()
+{
+	current_stage->change = false;
+	switch (current_stage->change_to)
+	{
+	case Stage::INTRO_STAGE:
+		// If we go back to the Intro stage that means that we are going to restart the game
+		current_stage = intro_stage;
+		map->loadMap("data/mapabombas.map");
+		play_stage->reset();
+		break;
+	case Stage::TUTORIAL_STAGE:
+		current_stage = tutorial_stage;
+		break;
+	case Stage::PLAY_STAGE:
+		play_stage->setPlayerSprite(tutorial_stage->getPlayerSelected());
+		synth.playSample("data/road.wav", 5, true);	// environmental song to play during play stage
+		current_stage = play_stage;
+		break;
+	case Stage::WIN_STAGE:
+		synth.stopAllSamples();
+		final_stage->changeWin(true);
+		current_stage = final_stage;
+		break;
+	case Stage::GAMEOVER_STAGE:
+		synth.stopAllSamples();
+		synth.playSample("data/explosion.wav", 10, false);
+		final_stage->changeWin(false);
+		current_stage = final_stage;
+		break;
+	case Stage::EXIT_STAGE:	// Exit the game
+		must_exit = true;
+		break;
+	}
 }
 
 //Keyboard event handler (sync input)
@@ -100,44 +154,13 @@ void Game::onKeyDown( SDL_KeyboardEvent event )
 		case SDLK_ESCAPE: 
 			must_exit = true; 
 			break; //ESC key, kill the app
-		
-		/***FOR DEBUGGING***/
-		case SDLK_1:
-			current_stage = stage;
-			break;
-		case SDLK_2:
-			current_stage = intro_stage;
-			break;
-		case SDLK_3:
-			current_stage = play_stage;
-			break;
-		case SDLK_4:
-			current_stage = final_stage;
-			break;
 	}
 
 	current_stage->onKeyDown(event);
 
 	// Change stage
 	if (current_stage->change) {
-		current_stage->change = false;
-		switch (current_stage->change_to)
-		{
-		case Stage::STAGE:
-			current_stage = stage;
-			break;
-		case Stage::INTRO_STAGE:
-			// If we go back to the Intro stage that means that we are going to restart the game
-			current_stage = intro_stage;
-			play_stage->reset();
-			break;
-		case Stage::PLAY_STAGE:
-			current_stage = play_stage;
-			break;
-		case Stage::EXIT_STAGE:	// Exit the game
-			must_exit = true;
-			break;
-		}
+		changeState();
 	}
 }
 

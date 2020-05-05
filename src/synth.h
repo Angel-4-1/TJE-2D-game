@@ -94,6 +94,9 @@ class Synth {
 		bool updateSamplesBuffer(SDL_AudioSpec& spec );
 
 		static float getNoteFreq(int note) { return 440 * pow(2.0, (note - 69) / 12.0); }
+
+		// Function to stop every sample that is playing
+		void stopAllSamples();
 };
 
 #endif
